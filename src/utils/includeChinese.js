@@ -1,3 +1,5 @@
+// https://github.com/alsotang/is-chinese
+
 const chineseRange = [
   // Chinese punctuation
   0x00b7, //·
@@ -53,4 +55,4 @@ const includeChinese = function (str = '') {
   return str.match(cnRe);
 };
 
-module.exports = includeChinese;
+module.exports = { includeChinese };

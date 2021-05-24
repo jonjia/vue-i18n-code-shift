@@ -1,69 +1,114 @@
 const _ = require('lodash');
 const compiler = require('vue-template-compiler');
 const ts = require('typescript');
+const { parse, AST } = require('vue-eslint-parser');
 const { getSpecifiedFiles, readFile } = require('./file');
 const { getProjectConfig } = require('./config');
+const { includeChinese } = require('./includeChinese');
 
 const CONFIG = getProjectConfig();
-const DOUBLE_BYTE_REGEX = /[^\x00-\xff]/g;
-// const PART_DOUBLE_BYTE_REGEX = /[^\x00-\xff]+/g;
+const NEW_LINE_RE = /\n\s+/g;
+const AST_NODE_TYPE = {};
+const types = Object.keys(AST.KEYS);
+for (let type of types) {
+  AST_NODE_TYPE[type] = type;
+}
 
 function findTextInTemplate(code) {
   const matches = [];
 
-  const { ast } = compiler.compile(code, {
-    outputSourceRange: true,
-    whitespace: 'preserve',
+  const ast = parse(code, {
+    sourceType: 'module',
   });
 
   function visitAttr(attr) {
-    const { name, value, start, end } = attr;
-    if (value && value.match(DOUBLE_BYTE_REGEX)) {
+    if (!attr || !attr.value) {
+      return;
+    }
+    const attrValueNode = attr.value;
+    const {
+      type,
+      value,
+      range: [start, end],
+    } = attrValueNode;
+
+    if (type === AST_NODE_TYPE.VLiteral && includeChinese(value)) {
       matches.push({
         range: { start, end },
-        text: value,
-        name,
+        value,
         isAttr: true,
-        isString: true,
-        isTemplate: true,
       });
+    }
+
+    if (type === AST_NODE_TYPE.VExpressionContainer) {
+      const expressionNode = attrValueNode.expression;
+      if (expressionNode.type === AST_NODE_TYPE.MemberExpression) {
+        const obj = expressionNode.object;
+        if (obj.type === AST_NODE_TYPE.ArrayExpression) {
+          obj.elements.forEach(visit);
+        }
+      } else if (expressionNode.type === AST_NODE_TYPE.ArrayExpression) {
+        expressionNode.elements.forEach(visit);
+      }
     }
   }
 
   function visit(node) {
-    const { type, text, start, end } = node;
-    if ((type === 3 || type === 2) && text && text.match(DOUBLE_BYTE_REGEX)) {
+    const {
+      type,
+      value,
+      range: [start, end] = [],
+      startTag: { attributes } = {},
+    } = node;
+
+    if (type === AST_NODE_TYPE.VText && includeChinese(value)) {
+      let newValue = value;
+      let s = start;
+      let e = end;
+      const [before = '', after = ''] = value.match(NEW_LINE_RE) || [];
+      if (before) {
+        newValue = newValue.slice(
+          before.length,
+          newValue.length - after.length
+        );
+        s += before.length;
+        e -= after.length;
+      }
       matches.push({
-        range: { start, end },
-        text,
+        range: { start: s, end: e },
+        value: newValue,
         isAttr: false,
-        isString: true,
-        isTemplate: true,
       });
     }
 
-    if (node.attrsList && node.attrsList.length) {
-      node.attrsList.forEach(visitAttr);
+    if (type === AST_NODE_TYPE.Literal && includeChinese(value)) {
+      matches.push({
+        range: { start: node.start, end: node.end },
+        value,
+        isAttr: false,
+      });
     }
 
-    if (node.scopedSlots) {
-      node.children = Object.values(node.scopedSlots);
-      node.children.forEach(visit);
-    } else if (
-      node.ifConditions &&
-      node.ifConditions.filter((item) => item.block.end !== node.end).length > 0
-    ) {
-      node.ifConditions
-        .filter((item) => item.block.end !== node.end)
-        .map((item) => item.block)
-        .forEach(visit);
-      node.children.forEach(visit);
-    } else if (node.children && node.children.length) {
+    if (type === AST_NODE_TYPE.VExpressionContainer) {
+      const expressionNode = node.expression;
+      if (expressionNode.type === AST_NODE_TYPE.MemberExpression) {
+        const obj = expressionNode.object;
+        if (obj.type === AST_NODE_TYPE.ArrayExpression) {
+          obj.elements.forEach(visit);
+        }
+      }
+    }
+
+    if (attributes && attributes.length > 0) {
+      attributes.forEach(visitAttr);
+    }
+
+    if (node.children && node.children.length) {
       node.children.forEach(visit);
     }
   }
 
-  visit(ast);
+  visit(ast.templateBody);
 
   return matches;
 }
@@ -83,7 +128,7 @@ function findTextInJs(code) {
       case ts.SyntaxKind.StringLiteral: {
         /** 判断 Ts 中的字符串含有中文 */
         const { text } = node;
-        if (text.match(DOUBLE_BYTE_REGEX)) {
+        if (includeChinese(text)) {
           const start = node.getStart();
           const end = node.getEnd();
           const range = { start, end };
@@ -100,7 +145,7 @@ function findTextInJs(code) {
         const { pos, end } = node;
         const templateContent = code.slice(pos, end);
 
-        if (templateContent.match(DOUBLE_BYTE_REGEX)) {
+        if (includeChinese(templateContent)) {
           const start = node.getStart();
           const end = node.getEnd();
           const range = { start, end };
@@ -117,7 +162,7 @@ function findTextInJs(code) {
         const { pos, end } = node;
         const templateContent = code.slice(pos, end);
 
-        if (templateContent.match(DOUBLE_BYTE_REGEX)) {
+        if (includeChinese(templateContent)) {
           const start = node.getStart();
           const end = node.getEnd();
           const range = { start, end };
@@ -145,8 +190,11 @@ function findChineseText(filePath) {
     return [];
   }
   if (filePath.endsWith('.vue')) {
-    const { template, script } = compiler.parseComponent(fileContent);
-    const textInTemplate = template ? findTextInTemplate(template.content) : [];
+    const templateContent = fileContent.split('<script>')[0];
+    const { script } = compiler.parseComponent(fileContent);
+    const textInTemplate = templateContent
+      ? findTextInTemplate(templateContent)
+      : [];
     const textInJs = script ? findTextInJs(script.content) : [];
     return [...textInTemplate, ...textInJs];
   } else if (filePath.endsWith('.js')) {

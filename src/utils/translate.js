@@ -88,7 +88,13 @@ async function translateFiles(files) {
   let translatedFiles = [];
   for await (let file of files) {
     const { filePath, texts: textObjs } = file;
-    const texts = Array.from(new Set(textObjs.map((textObj) => textObj.text)));
+    const texts = Array.from(
+      new Set(
+        textObjs
+          .map((textObj) => textObj.text)
+          .filter((text) => text !== undefined)
+      )
+    );
     const translatedTexts = await translateTexts(texts);
     translatedFiles.push({ filePath, texts, translatedTexts });
   }
