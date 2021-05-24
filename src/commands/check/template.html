@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>语料对比报告</title>
+    <style>
+      body {
+        font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
+        font-size: 16px;
+        font-weight: normal;
+        margin: 0;
+        padding: 0;
+        color: #333;
+      }
+    </style>
+  <body>
+    <div id="app"></div>
+    <script src="https://unpkg.com/vue@next"></script>
+    <script>
+      const { createApp } = Vue;
+
+      const App = {
+        data() {
+          return {
+            result: RESULT,
+          };
+        },
+        template: `
+          <div style="margin: 0 20px;">
+            <div v-for="(value, lang) in result">
+              <h1>{{lang}}</h1>
+              <div v-if="value.fileDiff">
+                文件差异: 代码里{{value.fileDiff.source}}, 代码里{{value.fileDiff.translated}}
+              </div>
+              <table>
+                <th>
+                  <td  width="500">文件名</td>
+                  <td  width="500">Key</td>
+                  <td  width="500">代码语料值</td>
+                  <td  width="500">语料平台值</td>
+                </th>
+              </table>
+              <div v-for="(data, filename) in value">
+                <template v-if="filename !== 'fileDiff'">
+                  <table>
+                    <tr v-for="item in data">
+                      <td width="500" style="text-align: center;">{{filename}}</td>
+                      <td width="500" style="text-align: center;">{{item.key}}</td>
+                      <td width="500" style="text-align: center;">{{item.source}}</td>
+                      <td width="500" style="text-align: center;">{{item.translated}}</td>
+                    </tr>
+                  </table>
+                </template>
+              </div>
+            </div>
+          </div>`
+      };
+      createApp(App).mount("#app");
+    </script>
+  </head>
+  </body>
+</html>

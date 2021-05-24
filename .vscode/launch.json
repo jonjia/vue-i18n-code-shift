@@ -1,0 +1,61 @@
+{
+  // 使用 IntelliSense 了解相关属性。
+  // 悬停以查看现有属性的描述。
+  // 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "findChineseText",
+      "program": "${workspaceFolder}/src/utils/findChineseText.js",
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "extract",
+      "program": "${workspaceFolder}/src/commands/extract/index.js",
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "replace",
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${workspaceFolder}/src/commands/replace/index.js"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "export",
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${workspaceFolder}/src/commands/export/index.js"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "import",
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${workspaceFolder}/src/commands/import/index.js"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "moveRules",
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${workspaceFolder}/src/commands/moveRules/index.js",
+      "resolveSourceMapLocations": [
+        "${workspaceFolder}/**",
+        "!**/node_modules/**"
+      ]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "check",
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${workspaceFolder}/src/commands/check/index.js"
+    }
+  ]
+}
