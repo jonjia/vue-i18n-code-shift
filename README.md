@@ -12,8 +12,24 @@ vue 项目国际化全流程解决方案: 一个命令行工具，对代码里�
 
 ```shellscript
 npm install -g vue-i18n-code-shift
-
 ```
+
+## 使用
+
+### 示例
+
+1. 在项目根目录（example/projectAfter）使用 `vics init` 命令初始化，生成配置文件（默认是 .vics 目录）
+2. 使用 `vics one` 命令一键提取替换(也可以分步使用 `vics extract` 和 `vics replace` 命令)
+3. 使用 `vics export en` 导出未翻译的文件，就可以送翻了
+4. 使用 `vics sync` 暂时 mock 语料
+5. 使用 `vics import en 翻译好的 xlsx 文件路径` 导入翻译好的语料
+
+### 效果
+
+- .vue 文件
+  ![vue](https://github.com/jonjia/vue-i18n-code-shift/raw/feature/example/assets/vue.png)
+- .js 文件
+  ![js](https://github.com/jonjia/vue-i18n-code-shift/raw/feature/example/assets/js.png)
 
 ## 命令
 
