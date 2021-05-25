@@ -27,9 +27,9 @@ npm install -g vue-i18n-code-shift
 ### 效果
 
 - .vue 文件
-  ![vue](https://github.com/jonjia/vue-i18n-code-shift/raw/feature/example/assets/vue.png)
+  ![vue](https://github.com/jonjia/vue-i18n-code-shift/raw/main/assets/vue.png)
 - .js 文件
-  ![js](https://github.com/jonjia/vue-i18n-code-shift/raw/feature/example/assets/js.png)
+  ![js](https://github.com/jonjia/vue-i18n-code-shift/raw/main/assets/js.png)
 
 ## 命令
 
