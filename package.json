@@ -1,6 +1,6 @@
 {
   "name": "vue-i18n-code-shift",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "vue 项目国际化全流程解决方案: 一个命令行工具，对代码里的中文文案一键完成提取、替换、翻译、导入、导出等，告别手动操作",
   "main": "src/index.js",
   "repository": "git@github.com:jonjia/vue-i18n-code-shift.git",
